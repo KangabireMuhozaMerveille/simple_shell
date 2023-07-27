@@ -7,8 +7,20 @@
 #include <string.h>
 #include <limits.h>
 
-/* Data structure to hold environment variables */
-typedef struct data_shell 
+/**
+ * struct data_shell - Data structure to hold environment variables
+ * @args: Array of strings containing command arguments
+ * @environ: Array of strings containing environment variables
+ * @status: Status code of the shell
+ * @datash: Pointer to the data_shell struct (used for internal purposes)
+ * @prompt: Pointer to the shell prompt
+ * @pid: Process ID of the shell
+ * @cwd: Pointer to the current working directory
+ * @home_dir: Pointer to the home directory
+ * Description: This struct holds various data related to the shell
+ *              and environment variables used by the shell.
+ */
+typedef struct data_shell
 {
 	char **args;
 	char **environ;
@@ -20,7 +32,7 @@ typedef struct data_shell
 		char *home_dir;
 
 } data_shell;
- extern char **environ;
+extern char **environ;
 /* Utility Functions */
 char *_strdup(const char *str);
 char *_getenv(const char *name, char **environ);
