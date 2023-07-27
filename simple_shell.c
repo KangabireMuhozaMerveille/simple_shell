@@ -1,30 +1,32 @@
-#!/bin/bash
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <limits.h>
+#include <errno.h>
+#include "shell.h"
 
 #define BUFFER_SIZE 1024
+/**
+ * main - This is the main function of the simple shell program.
+ * It handles user input, executes commands, and interacts with the shell.
+ * Return: The return value of the main function.
+ */
 
 int main(void)
 {
 	char command[100];
 
+
 	while (1)
 	{
 		printf(":) ");
 		fflush(stdout);
-      
 		if (fgets(command, sizeof(command), stdin) == NULL)
-			break; 
-
+			break;
 		command[strcspn(command, "\n")] = '\0';
-
 		if (strcmp(command, "env") == 0)
 		{
-			extern char **environ;
 			char **env = environ;
 			while (*env)
 			{
@@ -37,40 +39,75 @@ int main(void)
 			printf("Exiting the program.\n");
 			break;
 		}
-		else
-		{
-	  
-			char *args[BUFFER_SIZE];
-			int arg_count = 0;
-			char *token = strtok(command, " ");
-			while (token != NULL && arg_count < BUFFER_SIZE - 1)
-			{
-				args[arg_count++] = token;
-				token = strtok(NULL, " ");
-			}
-			args[arg_count] = NULL;
-
-			if (arg_count > 0)
-			{
-				pid_t pid = fork();
-				if (pid < 0)
-				{
-					perror("Fork error");
-				}
-				else if (pid == 0)
-				{
-					execvp(args[0], args);
-					perror("Execution error");
-					exit(1);
-				}
-				else
-				{
-					wait(NULL);
-				}
-			}
-		}
-    
 	}
-	return 0;
+	return (0);
 }
+/**
+    * cd_dot - Thisis used to make the
+    * changes to the parent directory
+    *
+    * @datash: data relevant (environ)
+    *
+    * Return: no return
+    */
+void cd_dot(data_shell *datash)
+{
+	char pwd[PATH_MAX];
+	char *dir, *cp_pwd, *cp_dir;
 
+	getcwd(pwd, sizeof(pwd));
+	dir = datash->args[1];
+	if (chdir(dir) == -1)
+	{
+		errno = 2;
+		printf("Error: %s\n", strerror(errno));
+		return;
+	}
+	cp_pwd = strdup(pwd);
+	setenv("OLDPWD", cp_pwd, 1);
+	cp_dir = strdup(dir);
+	setenv("PWD", cp_dir, 1);
+	free(cp_pwd);
+	free(cp_dir);
+	datash->status = 0;
+	chdir(dir);
+}
+/**
+    * cd_previous - This makes changes
+    * to the previous directory
+    * @datash: data relevant (environ)
+    * Return: no return
+    */
+void cd_previous(data_shell *datash)
+{
+	char pwd[PATH_MAX];
+	char *p_pwd, *p_oldpwd, *cp_pwd, *cp_oldpwd;
+
+	getcwd(pwd, sizeof(pwd));
+	cp_pwd = strdup(pwd);
+
+	p_oldpwd = getenv("OLDPWD");
+
+	if (p_oldpwd == NULL)
+		cp_oldpwd = cp_pwd;
+	else
+		cp_oldpwd = strdup(p_oldpwd);
+
+	setenv("OLDPWD", cp_pwd, 1);
+
+	if (chdir(cp_oldpwd) == -1)
+		setenv("PWD", cp_pwd, 1);
+	else
+		setenv("PWD", cp_oldpwd, 1);
+
+	p_pwd = getenv("PWD");
+
+	write(STDOUT_FILENO, p_pwd, strlen(p_pwd));
+	write(STDOUT_FILENO, "\n", 1);
+
+	free(cp_pwd);
+	if (p_oldpwd)
+	free(cp_oldpwd);
+
+	datash->status = 0;
+}
