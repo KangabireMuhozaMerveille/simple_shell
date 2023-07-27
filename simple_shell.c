@@ -15,15 +15,20 @@
 
 int main(void)
 {
-	char command[100];
+	char command[BUFFER_SIZE];
 
 
 	while (1)
 	{
 		printf(":) ");
 		fflush(stdout);
+
 		if (fgets(command, sizeof(command), stdin) == NULL)
+		{
+			printf("\n");
 			break;
+		}
+
 		command[strcspn(command, "\n")] = '\0';
 		if (strcmp(command, "env") == 0)
 		{
