@@ -32,6 +32,11 @@ typedef struct data_shell
 		char *home_dir;
 
 } data_shell;
+typedef struct builtin
+{
+	const char *name;
+	int (*f)(data_shell *datash);
+} builtin_t;
 extern char **environ;
 /* Utility Functions */
 char *_strdup(const char *str);
@@ -48,6 +53,8 @@ void cd_to_home(struct data_shell *datash);
 void get_error(struct data_shell *datash, int code);
 char *_strdup(const char *str);
 void rev_string(char *s);
-
+int exec_line(struct data_shell *datash);
+int (*get_builtin(char *cmd))(data_shell *);
+int cmd_exec(struct data_shell *datash);
 #endif /* SHELL_H */
 
